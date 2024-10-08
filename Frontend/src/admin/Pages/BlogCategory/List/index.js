@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { NavLink, useNavigate } from "react-router-dom";
-import { getBlogCategory, deleteBlogCategory } from '../../../../services/BlogCategory'; // Adjust the path based on your folder structure
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { getBlogCategory, deleteBlogCategory } from '../../../../services/BlogCategory';
+import Swal from 'sweetalert2';
 
 export default function BlogCategory({ color }) {
     const [Blogcategories, setBlogcategories] = useState([]);
-    const navigate = useNavigate(); // Initialize useNavigate
+    const [selectedCategories, setSelectedCategories] = useState([]); // State to track selected categories
+    const [selectAll, setSelectAll] = useState(false); // State to handle select all
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchBlogcategories();
@@ -15,31 +16,85 @@ export default function BlogCategory({ color }) {
 
     const fetchBlogcategories = async () => {
         try {
-            const result = await getBlogCategory(); // Fetch categories using the API
-            setBlogcategories(result || []); // Ensure that it's always an array
+            const result = await getBlogCategory();
+            setBlogcategories(result || []);
         } catch (err) {
             console.error('Error fetching categories:', err);
-            setBlogcategories([]); // Set an empty array in case of an error
-            toast.error('Error fetching categories. Please try again later.');
+            setBlogcategories([]);
+            Swal.fire('Error', 'Lỗi khi tải danh mục. Vui lòng thử lại.', 'error');
         }
     };
 
-    // Handle Edit Click
     const handleEditClick = (id) => {
-        navigate(`/admin/category_blog/edit/${id}`); // Redirect to edit page with category ID
+        navigate(`/admin/category_blog/edit/${id}`);
     };
 
-    // Handle Delete Click
     const handleDeleteClick = async (category) => {
-        const confirmDelete = window.confirm(`Bạn có chắc chắn muốn xóa danh mục "${category.name}" không?`); // Use browser confirm dialog
-        if (confirmDelete) {
+        const confirmDelete = await Swal.fire({
+            title: 'Xác nhận xóa',
+            text: `Bạn có chắc chắn muốn xóa danh mục "${category.name}" không?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Có',
+            cancelButtonText: 'Không',
+        });
+
+        if (confirmDelete.isConfirmed) {
             try {
-                await deleteBlogCategory(category.id); // Call the delete API
-                toast.success('Xóa danh mục blog thành công.');
-                fetchBlogcategories(); // Refresh the list after deletion
+                await deleteBlogCategory(category.id);
+                Swal.fire('Thành công', 'Xóa danh mục blog thành công.', 'success');
+                fetchBlogcategories();
             } catch (err) {
                 console.error('Error deleting category:', err);
-                toast.error('Lỗi khi xóa danh mục. Vui lòng thử lại.');
+                Swal.fire('Error', 'Lỗi khi xóa danh mục. Vui lòng thử lại.', 'error');
+            }
+        }
+    };
+
+    const handleSelectCategory = (id) => {
+        setSelectedCategories((prevSelected) => {
+            if (prevSelected.includes(id)) {
+                return prevSelected.filter((categoryId) => categoryId !== id);
+            } else {
+                return [...prevSelected, id];
+            }
+        });
+    };
+
+    const handleSelectAll = () => {
+        if (selectAll) {
+            setSelectedCategories([]); // Unselect all
+        } else {
+            setSelectedCategories(Blogcategories.map((category) => category.id)); // Select all categories
+        }
+        setSelectAll(!selectAll);
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedCategories.length === 0) {
+            Swal.fire('Chú ý', 'Vui lòng chọn ít nhất một danh mục để xóa.', 'warning');
+            return;
+        }
+
+        const confirmDelete = await Swal.fire({
+            title: 'Xác nhận xóa',
+            text: `Bạn có chắc chắn muốn xóa các danh mục đã chọn không?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Có',
+            cancelButtonText: 'Không',
+        });
+
+        if (confirmDelete.isConfirmed) {
+            try {
+                await Promise.all(selectedCategories.map(id => deleteBlogCategory(id)));
+                Swal.fire('Thành công', 'Xóa các danh mục đã chọn thành công.', 'success');
+                fetchBlogcategories();
+                setSelectedCategories([]); // Clear selection
+                setSelectAll(false); // Reset select all checkbox
+            } catch (err) {
+                console.error('Error deleting categories:', err);
+                Swal.fire('Error', 'Lỗi khi xóa các danh mục. Vui lòng thử lại.', 'error');
             }
         }
     };
@@ -71,71 +126,50 @@ export default function BlogCategory({ color }) {
                         >
                             Thêm danh mục
                         </NavLink>
+                        <button
+                            className="bg-red-500 text-white active:bg-red-600 text-xs font-bold uppercase px-3 py-1 rounded outline-none focus:outline-none ml-2 mb-1 ease-linear transition-all duration-150"
+                            onClick={handleBulkDelete}
+                        >
+                            Xóa đã chọn
+                        </button>
                     </div>
                 </div>
                 <div className="block w-full overflow-x-auto">
-                    {/* Blog categories table */}
                     <table className="items-center w-full bg-transparent border-collapse table-fixed">
                         <thead>
                         <tr>
-                            <th className={
-                                "px-6 py-3 border border-solid text-xs uppercase font-semibold text-left " +
-                                (color === "light"
-                                    ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                                    : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                            }
-                                style={{ width: "10%" }}
-                            >STT</th>
-                            <th className={
-                                "px-6 py-3 border border-solid text-xs uppercase font-semibold text-left " +
-                                (color === "light"
-                                    ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                                    : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                            }
-                                style={{ width: "10%" }}
-                            >Tên danh mục</th>
-                            <th className={
-                                "px-6 py-3 border border-solid text-xs uppercase font-semibold text-left " +
-                                (color === "light"
-                                    ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                                    : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                            }
-                                style={{ width: "10%" }}
-                            >Trạng Thái</th>
-                            <th className={
-                                "px-6 py-3 border border-solid text-xs uppercase font-semibold text-left " +
-                                (color === "light"
-                                    ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                                    : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                            }
-                                style={{ width: "10%" }}
-                            >Hành động</th>
+                            <th className="px-6 py-3 border border-solid text-xs uppercase font-semibold text-left">
+                                chọn
+                            </th>
+                            <th className="px-6 py-3 border border-solid text-xs uppercase font-semibold text-left">STT</th>
+                            <th className="px-6 py-3 border border-solid text-xs uppercase font-semibold text-left">Tên danh mục</th>
+                            <th className="px-6 py-3 border border-solid text-xs uppercase font-semibold text-left">Trạng Thái</th>
+                            <th className="px-6 py-3 border border-solid text-xs uppercase font-semibold text-left">Hành động</th>
                         </tr>
                         </thead>
                         <tbody>
                         {Blogcategories.length > 0 ? (
                             Blogcategories.map((category, index) => (
                                 <tr key={category.id}>
-                                    <th className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4 text-left flex items-center">
-                                        <span className="ml-3 font-bold">
-                                            {index + 1}
-                                        </span>
-                                    </th>
-                                    <td className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4">
-                                        {category.name}
+                                    <td className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4 text-left">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCategories.includes(category.id)}
+                                            onChange={() => handleSelectCategory(category.id)}
+                                        />
                                     </td>
-                                    <td className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4">
-                                        {category.status}
-                                    </td>
+                                    <td className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4">{index + 1}</td>
+                                    <td className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4">{category.name}</td>
+                                    <td className="border-t-0 px-6 align-middle text-xl whitespace-nowrap p-4">{category.status}</td>
                                     <td className="border-t-0 px-6 align-middle text-xs whitespace-nowrap p-4">
                                         <button
-                                            className="text-blue-500 hover:text-blue-700 px-2"
+                                            className="text-blue-500 hover:text-blue-700 px-2 transition duration-150 ease-in-out"
                                             onClick={() => handleEditClick(category.id)}
                                         >
                                             <i className="fas fa-pen text-xl"></i>
                                         </button>
                                         <button
-                                            className="text-red-500 hover:text-red-700 ml-2 px-2"
+                                            className="text-red-500 hover:text-red-700 ml-2 px-2 transition duration-150 ease-in-out"
                                             onClick={() => handleDeleteClick(category)}
                                         >
                                             <i className="fas fa-trash text-xl"></i>
@@ -145,7 +179,7 @@ export default function BlogCategory({ color }) {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="text-center">
+                                <td colSpan="5" className="text-center">
                                     Không có danh mục nào
                                 </td>
                             </tr>
@@ -154,9 +188,6 @@ export default function BlogCategory({ color }) {
                     </table>
                 </div>
             </div>
-
-            {/* Toast Container for messages */}
-            <ToastContainer />
         </>
     );
 }
