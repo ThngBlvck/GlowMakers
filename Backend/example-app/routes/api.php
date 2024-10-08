@@ -12,7 +12,6 @@ use App\Http\Controllers\Admin\RoleController;
 
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CommentController;
-use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ImageController;
 use App\Http\Controllers\Admin\ProductController;
@@ -28,10 +27,9 @@ Route::prefix('admin')->group(function () {
     Route::apiResource('blog', BlogController::class);
     Route::apiResource('blogcategory', BlogCategoryController::class);
     Route::apiResource('user', UserController::class);
-Route::apiResource('productCategory', CategoryController::class);
+    Route::apiResource('productCategory', CategoryController::class);
     Route::apiResource('role', RoleController::class);
     Route::apiResource('comment', CommentController::class);
-    Route::apiResource('productCategory', CategoryController::class);
 
 
     Route::apiResource('categories', CategoryController::class);
