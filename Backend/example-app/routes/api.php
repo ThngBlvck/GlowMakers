@@ -43,7 +43,7 @@ Route::prefix('admin')->group(function () {
     });
 
     Route::apiResource('orders', OrderController::class);
-    Route::apiResource('employee',UserController::class);
+    Route::apiResource('employee', UserController::class);
 });
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'Register']);
@@ -60,10 +60,6 @@ Route::prefix('client')->group(function () {
     Route::get('/products/search', [ClientProductController::class, 'search']); //http://localhost:8000/api/client/products/search?query=teneanpham
     Route::get('send-mail', [ClientProductController::class, 'sendMail']); //http://localhost:8000/api/client/products/search?query=teneanpham
     Route::post('/contact/send', [MailController::class, 'send']);
-    // Route để yêu cầu đặt lại mật khẩu qua API
-    Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('client.reset-password');
-    Route::middleware('auth:api')->get('/user', [UserController::class, 'getUser']);
-    Route::middleware('auth:api')->apiResource('comments', CommentController::class);
 });
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'Register']);
