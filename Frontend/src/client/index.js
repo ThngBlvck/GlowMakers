@@ -21,8 +21,12 @@ import OrderManagement from "./Pages/OrderManagement";
 import OrderHistory from "./Pages/OrderHistory";
 import Page404 from "./Pages/404";
 
-
 export default function Client() {
+
+    const isAuthenticated = () => {
+        return localStorage.getItem('token') !== null;
+    };
+
     return (
         <CartProvider>
             <Header/>
@@ -36,8 +40,11 @@ export default function Client() {
                     <Route path="/profile" element={<Profile/>}/>
                     <Route path="/cart" element={<Cart/>}/>
                     <Route path="/checkout" element={<Checkout/>} />
-                    <Route path="/register" element={<Register/>} />
-                    <Route path="/login" element={<Login/>} />
+                    
+                    {/* Chặn truy cập vào đăng ký và đăng nhập nếu đã đăng nhập */}
+                    <Route path="/register" element={isAuthenticated() ? <Navigate to="/home" /> : <Register/>} />
+                    <Route path="/login" element={isAuthenticated() ? <Navigate to="/home" /> : <Login/>} />
+                    
                     <Route path="/forgot-password" element={<ForgotPassword/>}/>
                     <Route path="/ordered" element={<Ordered/>} />
                     <Route path="/order-detail" element={<OrderManagement/>} />
@@ -45,7 +52,8 @@ export default function Client() {
                     <Route path="/post" element={<Post/>} />
                     <Route path="/postdetail" element={<PostDetail/>} />
                     <Route path="/404" element={<Page404/>} />
-
+                    
+                    {/* Trang chủ khi vào đường dẫn gốc */}
                     <Route path="/" element={<Navigate to="/home" />} />
                 </Routes>
             </div>
