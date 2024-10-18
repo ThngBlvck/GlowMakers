@@ -48,17 +48,28 @@ class CartController extends Controller
         $price = $product->getPrice(); // Gọi phương thức getPrice để lấy giá
         $totalAmount = $price * $quantity; // Tính tổng số tiền
 
-        // Lưu vào giỏ hàng
-        Cart::create([
-            'user_id' => $userId,
-            'product_id' => $productId,
-            'quantity' => $quantity,
-            'price' => $price, // Lưu giá vào cột price của bảng cart
-            'total_amount' => $totalAmount, // Lưu tổng tiền vào cột total_amount
-        ]);
+        // Kiểm tra xem sản phẩm đã có trong giỏ hàng hay chưa
+        $cartItem = Cart::where('user_id', $userId)->where('product_id', $productId)->first();
+
+        if ($cartItem) {
+            // Nếu sản phẩm đã tồn tại trong giỏ hàng, tăng số lượng
+            $cartItem->quantity += $quantity; // Tăng số lượng
+            $cartItem->total_amount += $totalAmount; // Cập nhật tổng tiền
+            $cartItem->save(); // Lưu lại
+        } else {
+            // Nếu sản phẩm chưa tồn tại, tạo mới bản ghi
+            Cart::create([
+                'user_id' => $userId,
+                'product_id' => $productId,
+                'quantity' => $quantity,
+                'price' => $price, // Lưu giá vào cột price của bảng cart
+                'total_amount' => $totalAmount, // Lưu tổng tiền vào cột total_amount
+            ]);
+        }
 
         return response()->json(['success' => 'Sản phẩm đã được thêm vào giỏ hàng.'], 200);
     }
+
 
 
 
