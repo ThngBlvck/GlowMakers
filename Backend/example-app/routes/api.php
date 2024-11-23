@@ -27,7 +27,8 @@ use App\Http\Controllers\Client\{
     AddressController,
     MomoPaymentController,
     ShippingController,
-    PhoneController
+    PhoneController,
+    ReviewController
 };
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -114,6 +115,7 @@ Route::prefix('client')->group(function () {
     Route::post('/send-otp', [PhoneController::class, 'sendOtp'])->middleware('auth:api');
     // Route xác thực OTP yêu cầu xác thực người dùng
     Route::post('/verify-otp', [PhoneController::class, 'verifyOtp']) ->middleware('auth:api');
+    Route::apiResource('/review', ReviewController::class)->middleware('auth:api');
 });
 
 // General user route (outside of client prefix)
