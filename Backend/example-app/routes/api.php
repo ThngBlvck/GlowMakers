@@ -17,7 +17,8 @@ use App\Http\Controllers\Admin\{
     ReportExportController,
     AttributeController,
     AttributeValueController,
-    VariantController
+    VariantController,
+    BannerController
 };
 use App\Http\Controllers\Client\{
     OrderController as OrderClient,
